@@ -40,17 +40,20 @@ colors = {
     'background': '#111111',
     'text': '#7FDBFF'
 }
+
 tab_selected_style = {
     'borderTop': '1px solid #111111',
     'borderBottom': '1px solid #111111',
     'backgroundColor': 'hotpink',
     'color': '#111111',
 }
+
 tab_style = {
     'fontWeight': 'bold',
     'backgroundColor': '#111111',
     'color': 'hotpink',
 }
+
 
 def download_and_process_data(stock_name):
     import yfinance
@@ -64,6 +67,7 @@ def download_and_process_data(stock_name):
     info = yfinance.Ticker(stock_name)
     return df, close_data, info
 
+
 def split_data(close_data, df):
     split_percent = 80/100
     split = int(split_percent * len(close_data))
@@ -73,11 +77,13 @@ def split_data(close_data, df):
     date_test = df['Date'][split:]
     return close_train, close_test, date_train, date_test
 
+
 def sequence_to_supervised(look_back, close_train, close_test):
     from keras.preprocessing.sequence import TimeseriesGenerator
     train_generator = TimeseriesGenerator(close_train, close_train, length=look_back, batch_size=20)
     test_generator = TimeseriesGenerator(close_test, close_test, length=look_back, batch_size=1)
     return train_generator, test_generator
+
 
 def train_model(look_back, train_generator, epochs):
     from keras.models import Sequential
@@ -93,6 +99,7 @@ def train_model(look_back, train_generator, epochs):
     lstm_model.fit_generator(train_generator,epochs=epochs)
     
     return lstm_model
+
 
 def plot_train_test_graph(stock, model, test_generator, close_train, close_test, date_train, date_test):
     from plotly import graph_objs as go
@@ -133,6 +140,7 @@ def plot_train_test_graph(stock, model, test_generator, close_train, close_test,
     font_color=colors['text'])
     return figure, score
 
+
 def predict(num_prediction, model, close_data, look_back):
     prediction_list = close_data[-look_back:]
     
@@ -145,10 +153,12 @@ def predict(num_prediction, model, close_data, look_back):
         
     return prediction_list
 
+
 def predict_dates(num_prediction, df):
     last_date = df['Date'].values[-1]
     prediction_dates = pd.date_range(last_date, periods=num_prediction+1).tolist()
     return prediction_dates
+
 
 def predicting(close_data, model, look_back, df):
     close_data = close_data.reshape((-1))
@@ -156,6 +166,7 @@ def predicting(close_data, model, look_back, df):
     forecast = predict(num_prediction, model, close_data, look_back)
     forecast_dates = predict_dates(num_prediction, df)
     return close_data, forecast, forecast_dates
+
 
 def plot_future_prediction(model, test_generator, close_train, close_test, df, forecast_dates, forecast):
     from plotly import graph_objs as go
@@ -187,6 +198,7 @@ def plot_future_prediction(model, test_generator, close_train, close_test, df, f
     plot_bgcolor=colors["background"],
     font_color=colors['text'])
     return figure
+
 
 '''
 Main Variables : 
@@ -265,6 +277,7 @@ app.layout = html.Div([
     ], style={"height":"100%"})
 ], style={"color":"hotpink", 'backgroundColor': colors['background'], "paddingTop":"16px"})
 
+
 def return_empty_graph():
     empty = {
             "layout": {
@@ -291,6 +304,7 @@ def return_empty_graph():
                 }
             }
     return empty
+
 
 @app.callback(
     [dash.dependencies.Output('training_plot','figure'), 
@@ -320,6 +334,7 @@ def update_graph(value):
         empty = return_empty_graph()
         return empty, empty, "No R2 Score to display", "No Asset Queried or Selected"
 # fig.show()
+
 
 if __name__=='__main__':
     app.run_server(debug=True)
