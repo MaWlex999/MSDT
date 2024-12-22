@@ -57,12 +57,12 @@ tab_style = {
 
 
 def download_and_process_data(stock_name):
-    df = yf.download(stock_name,period='max')
+    df = yf.download(stock_name, period='max')
     df.reset_index(inplace=True)
     df['Date'] = pd.to_datetime(df['Date'])
     df.set_axis(df['Date'], inplace=True)
     close_data = df['Close'].values
-    close_data = close_data.reshape((-1,1))
+    close_data = close_data.reshape((-1, 1))
     info = yf.Ticker(stock_name)
     return df, close_data, info
 
@@ -87,13 +87,12 @@ def train_model(look_back, train_generator, epochs):
     lstm_model = Sequential()
     lstm_model.add(
         LSTM(10,
-        activation='relu',
-        input_shape=(look_back,1))
-    )
+             activation='relu',
+             input_shape=(look_back, 1)))
     lstm_model.add(Dense(1))
     lstm_model.compile(optimizer='adam', loss='mse')
-    lstm_model.fit_generator(train_generator,epochs=epochs)
-    
+    lstm_model.fit_generator(train_generator, epochs=epochs)
+
     return lstm_model
 
 
@@ -103,48 +102,48 @@ def plot_train_test_graph(stock, model, test_generator, close_train, close_test,
     close_test = close_test.reshape((-1))
     prediction = prediction.reshape((-1))
     trace1 = go.Scatter(
-        x = date_train,
-        y = close_train,
-        mode = 'lines',
-        name = 'Data'
+        x=date_train,
+        y=close_train,
+        mode='lines',
+        name='Data'
     )
     trace2 = go.Scatter(
-        x = date_test,
-        y = prediction,
-        mode = 'lines',
-        name = 'Prediction',
+        x=date_test,
+        y=prediction,
+        mode='lines',
+        name='Prediction',
         line=dict(color='red')
     )
     trace3 = go.Scatter(
-        x = date_test,
-        y = close_test,
+        x=date_test,
+        y=close_test,
         mode='lines',
-        name = 'Ground Truth'
+        name='Ground Truth'
     )
     layout = go.Layout(
-        title = stock,
-        xaxis = {'title' : "Date"},
-        yaxis = {'title' : "Close"}
+        title=stock,
+        xaxis={'title': "Date"},
+        yaxis={'title': "Close"}
     )
     figure = go.Figure(data=[trace1, trace2, trace3], layout=layout)
     score = r2_score(close_test[:-15],prediction)
     figure.update_layout(
-    paper_bgcolor=colors['background'],
-    plot_bgcolor=colors["background"],
-    font_color=colors['text'])
+        paper_bgcolor=colors['background'],
+        plot_bgcolor=colors["background"],
+        font_color=colors['text'])
     return figure, score
 
 
 def predict(num_prediction, model, close_data, look_back):
     prediction_list = close_data[-look_back:]
-    
+
     for _ in range(num_prediction):
         x = prediction_list[-look_back:]
         x = x.reshape((1, look_back, 1))
         out = model.predict(x)[0][0]
         prediction_list = np.append(prediction_list, out)
     prediction_list = prediction_list[look_back-1:]
-        
+
     return prediction_list
 
 
@@ -168,28 +167,28 @@ def plot_future_prediction(model, test_generator, close_train, close_test, df, f
     close_test = close_test.reshape((-1))
     prediction = prediction.reshape((-1))
     trace1 = go.Scatter(
-        x = df['Date'],
-        y = df['Close'],
-        mode = 'lines',
-        name = 'Data'
+        x=df['Date'],
+        y=df['Close'],
+        mode='lines',
+        name='Data'
     )
     trace2 = go.Scatter(
-        x = forecast_dates,
-        y = forecast,
-        mode = 'lines',
-        name = 'Prediction'
+        x=forecast_dates,
+        y=forecast,
+        mode='lines',
+        name='Prediction'
     )
 
     layout = go.Layout(
-        title = "FUTURE PREDICTION",
-        xaxis = {'title' : "Date"},
-        yaxis = {'title' : "Close"}
+        title="FUTURE PREDICTION",
+        xaxis={'title': "Date"},
+        yaxis={'title': "Close"}
     )
     figure = go.Figure(data=[trace1, trace2], layout=layout)
     figure.update_layout(
-    paper_bgcolor=colors['background'],
-    plot_bgcolor=colors["background"],
-    font_color=colors['text'])
+        paper_bgcolor=colors['background'],
+        plot_bgcolor=colors["background"],
+        font_color=colors['text'])
     return figure
 
 
@@ -216,13 +215,13 @@ server = app.server
 
 
 app.layout = html.Div([
-    html.H1('Predikter', style={"textAlign": "center", "margin_top":"8px"}),
-    html.H2('Created By - Rishabh Panesar', style={"textAlign": "center", "margin_top":"8px"}),
+    html.H1('Predikter', style={"textAlign": "center", "margin_top": "8px"}),
+    html.H2('Created By - Rishabh Panesar', style={"textAlign": "center", "margin_top": "8px"}),
     dcc.Tabs(id="tabs", children=[
         dcc.Tab(label="Some Basic Information", children=[
             html.Div([
                 html.P("This project is made just for educational purpose. All the predictions made by the Machine Learning Model are entirely probablistic based.", style={"textAlign": "center"}),
-                html.H2("How to use?", style={"textAlign":"center"}),
+                html.H2("How to use?", style={"textAlign": "center"}),
                 html.Ol(children=[
                     html.Li("Web app only takes the TICKER name of the desired asset"),
                     html.Li("Type the ticker name of the desired stock or index & hit enter"),
@@ -230,7 +229,7 @@ app.layout = html.Div([
                     html.Li("Second Plot is the plot that contains the future predictions made by the model")
                 ]
                 ),
-                html.H2("Some other information", style={"textAlign":"center"}),
+                html.H2("Some other information", style={"textAlign": "center"}),
                 html.Ul(children=[
                     html.Li("Model Used : Squential LSTM Model"),
                     html.Li("Lookbacks : 15"),
@@ -238,36 +237,36 @@ app.layout = html.Div([
                     html.Li("Forecast Duration : 1 Month")
                 ]
                 )
-            ], style={"height":"100vh", "padding":"20px"})
+            ], style={"height": "100vh", "padding": "20px"})
         ], style=tab_style, selected_style=tab_selected_style),
         dcc.Tab(label="See the model in Action", children=[
             html.Div([
-                html.H1('Type a Stock Name & hit enter', style={'textAlign':'center'}),
+                html.H1('Type a Stock Name & hit enter', style={'textAlign': 'center'}),
                 dcc.Input(
                     id='stock_name',
                     type='text',
-                    debounce= True,
+                    debounce=True,
                     placeholder="Type a stock name & hit enter",
                     style={
                         "display": "block", "margin-left": "auto", "margin-right": "auto", "width": "60%"
                     }
                 ),
-                html.Div(id='r2_score', style={'textAlign':'center'})
+                html.Div(id='r2_score', style={'textAlign': 'center'})
             ]),
             html.Div([
                 dcc.Graph(id="training_plot")
             ]),
             html.Div([
-                html.H1('Stock Info Section', style={'textAlign':'center'}),
-                html.Div(id='stock_info', style={"color":"#f5f5f5", "text-align":"justify", "text-justify":"inter-word", "padding":"32px", "marginLeft":"16px","marginRight":"16px"}),
+                html.H1('Stock Info Section', style={'textAlign': 'center'}),
+                html.Div(id='stock_info', style={"color": "#f5f5f5", "text-align": "justify", "text-justify": "inter-word", "padding": "32px", "marginLeft": "16px", "marginRight": "16px"}),
                 ]),
-            html.H1('Future Price Prediction', style={'textAlign':'center', "margin":"0px"}),
+            html.H1('Future Price Prediction', style={'textAlign': 'center', "margin": "0px"}),
             html.Div([
                 dcc.Graph(id='future_plot')
-            ], style={"margin":"0px"}),
+            ], style={"margin": "0px"}),
         ], style=tab_style, selected_style=tab_selected_style)
-    ], style={"height":"100%"})
-], style={"color":"hotpink", 'backgroundColor': colors['background'], "paddingTop":"16px"})
+    ], style={"height": "100%"})
+], style={"color": "hotpink", 'backgroundColor': colors['background'], "paddingTop": "16px"})
 
 
 def return_empty_graph():
@@ -291,19 +290,19 @@ def return_empty_graph():
                     }
                     ],
                 'plot_bgcolor': colors['background'],
-                "paper_bgcolor":"#111111",
-                "font_color":colors["text"]
+                "paper_bgcolor": "#111111",
+                "font_color": colors["text"]
                 }
             }
     return empty
 
 
 @app.callback(
-    [dash.dependencies.Output('training_plot','figure'), 
-    dash.dependencies.Output('future_plot','figure'),
-    dash.dependencies.Output('r2_score', 'children')],
+    [dash.dependencies.Output('training_plot', 'figure'),
+     dash.dependencies.Output('future_plot', 'figure'),
+     dash.dependencies.Output('r2_score', 'children')],
     dash.dependencies.Output('stock_info', 'children'),
-    dash.dependencies.Input('stock_name','value'),
+    dash.dependencies.Input('stock_name', 'value'),
     )
 def update_graph(value):
     try:
@@ -314,8 +313,8 @@ def update_graph(value):
         return empty, empty, "No R2 Score to display", "No Asset Queried or Selected"
     try:
         close_train, close_test, date_train, date_test = split_data(close_data, df)
-        train_generator, test_generator = sequence_to_supervised(15,close_train,close_test)
-        lstm_model = train_model(15,train_generator, 25)
+        train_generator, test_generator = sequence_to_supervised(15, close_train, close_test)
+        lstm_model = train_model(15, train_generator, 25)
         # lstm_model.save('lstm_model.h5')
         figure_1, r2_score = plot_train_test_graph(stock, lstm_model, test_generator, close_train, close_test, date_train, date_test)
         close_data, forecast, forecast_dates = predicting(close_data, lstm_model, 15, df)
@@ -327,5 +326,5 @@ def update_graph(value):
         return empty, empty, "No R2 Score to display", "No Asset Queried or Selected"
 
 
-if __name__=='__main__':
+if __name__ == '__main__':
     app.run_server(debug=True)
